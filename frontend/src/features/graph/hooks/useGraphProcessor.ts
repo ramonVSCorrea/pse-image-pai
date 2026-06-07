@@ -119,12 +119,12 @@ export function useGraphProcessor(
         })
       )
 
-      showToast('Processamento concluído!', 'O grafo foi processado com sucesso.')
+      showToast('Fluxo processado com sucesso.', 'As etapas conectadas foram executadas no fluxo de imagem.')
     } catch (error) {
       console.error('Erro ao processar:', error)
       showDialog(
-        'Erro ao processar',
-        error instanceof Error ? error.message : 'Erro desconhecido ao processar o grafo.'
+        'Não foi possível processar o fluxo. Verifique os blocos e conexões.',
+        error instanceof Error ? error.message : 'Erro desconhecido ao processar o fluxo.'
       )
     } finally {
       setIsProcessing(false)

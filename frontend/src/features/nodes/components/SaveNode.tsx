@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { useState } from 'react'
-import { Save, Download } from 'lucide-react'
+import { FileDown } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -70,57 +70,69 @@ export default function SaveNode({ data, id, selected }: NodeProps<SaveNodeData>
   return (
     <div
       className={cn(
-        'rounded-lg border-2 bg-card p-3 shadow-lg min-w-[220px]',
-        selected ? 'border-primary' : 'border-green-600'
+        'relative min-w-[295px] overflow-visible rounded-[1.75rem] border bg-gradient-to-br from-emerald-50 via-white to-green-50 text-slate-900 shadow-node',
+        selected ? 'border-emerald-600 ring-4 ring-emerald-100' : 'border-emerald-100'
       )}
     >
+      <div className="absolute inset-y-0 left-0 w-3 rounded-l-[1.75rem] bg-emerald-600" />
       <Handle
         type="target"
         position={Position.Left}
-        className="!bg-green-600 !border-green-700"
+        className="!h-4 !w-4 !border-emerald-600 !bg-white"
       />
+      <span className="pointer-events-none absolute -left-7 top-1/2 -translate-y-1/2 rounded-full border border-emerald-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">img</span>
 
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-        <Save className="w-4 h-4 text-green-600" />
-        <h3 className="font-bold text-sm text-green-600">Salvar PGM</h3>
-      </div>
-
-      <div className="space-y-3 text-xs">
-        <div>
-          <Label htmlFor={`filename-${id}`} className="text-xs text-muted-foreground">
-            Nome do arquivo
-          </Label>
-          <Input
-            id={`filename-${id}`}
-            type="text"
-            value={filename}
-            onChange={(e) => handleFilenameChange(e.target.value)}
-            className="h-8 text-xs"
-            placeholder="output.pgm"
-          />
+      <div className="pl-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
+              <FileDown className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight text-slate-950">Exportar imagem</h3>
+              <p className="text-[11px] font-medium text-slate-500">Salvar resultado em arquivo</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800">Saída PGM</span>
         </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={!data.imageData}
-          className="w-full h-8 text-xs"
-          variant={data.imageData ? 'default' : 'secondary'}
-        >
-          <Download className="w-3 h-3 mr-1" />
-          Baixar Arquivo
-        </Button>
-
-        {data.imageData && (
-          <div className="text-xs text-green-600 font-medium bg-secondary p-2 rounded">
-            ✓ Pronto para salvar ({data.imageData.width} × {data.imageData.height})
+        <div className="space-y-3 border-t border-emerald-100/80 p-4 text-xs">
+          <div className="rounded-3xl border border-emerald-100 bg-white/82 p-3 shadow-sm">
+            <Label htmlFor={`filename-${id}`} className="text-xs font-bold text-slate-700">
+              Nome do arquivo
+            </Label>
+            <Input
+              id={`filename-${id}`}
+              type="text"
+              value={filename}
+              onChange={(e) => handleFilenameChange(e.target.value)}
+              className="mt-1 h-10 rounded-2xl bg-white text-xs"
+              placeholder="output.pgm"
+            />
           </div>
-        )}
 
-        {!data.imageData && (
-          <div className="text-xs text-muted-foreground text-center">
-            Execute o processamento primeiro
-          </div>
-        )}
+          <Button
+            onClick={handleSave}
+            disabled={!data.imageData}
+            className="h-10 w-full rounded-2xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700"
+            variant={data.imageData ? 'default' : 'secondary'}
+          >
+            <FileDown className="w-3 h-3 mr-1" />
+            Exportar PGM
+          </Button>
+
+          {data.imageData && (
+              <div className="rounded-2xl bg-emerald-100 p-2 text-xs font-bold text-emerald-800">
+              Pronto para salvar ({data.imageData.width} × {data.imageData.height})
+            </div>
+          )}
+
+          {!data.imageData && (
+            <div className="text-center text-xs text-slate-500">
+              Execute o processamento primeiro
+            </div>
+          )}
+        </div>
       </div>
 
       <Dialog open={dialog.isOpen} onOpenChange={closeDialog}>

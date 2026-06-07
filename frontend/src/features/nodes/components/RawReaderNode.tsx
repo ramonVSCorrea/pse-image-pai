@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { useState } from 'react'
-import { FileText, Image as ImageIcon } from 'lucide-react'
+import { FileText, UploadCloud } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -49,51 +49,64 @@ export default function RawReaderNode({ data, id, selected }: NodeProps<RawReade
   return (
     <div
       className={cn(
-        'rounded-lg border-2 bg-card p-3 shadow-lg min-w-[220px]',
-        selected ? 'border-primary' : 'border-green-500'
+        'relative min-w-[310px] overflow-visible rounded-[1.75rem] border bg-gradient-to-br from-teal-50 via-white to-teal-50/70 text-slate-900 shadow-node',
+        selected ? 'border-teal-600 ring-4 ring-teal-100' : 'border-teal-100'
       )}
     >
+      <div className="absolute inset-y-0 left-0 w-3 rounded-l-[1.75rem] bg-teal-700" />
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-green-500 !border-green-600"
+        className="!h-4 !w-4 !bg-teal-700 !border-white"
       />
+      <span className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2 rounded-full bg-teal-700 px-1.5 py-0.5 text-[9px] font-bold text-white">out</span>
 
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-        <ImageIcon className="w-4 h-4 text-green-500" />
-        <h3 className="font-bold text-sm text-green-500">Leitura de Imagem</h3>
-      </div>
-
-      <div className="space-y-3 text-xs">
-        <div>
-          <Label htmlFor={`file-${id}`} className="text-xs text-muted-foreground">
-            Arquivo de Imagem
-          </Label>
-          <Input
-            id={`file-${id}`}
-            type="file"
-            accept=".pgm"
-            onChange={handleFileChange}
-            className="h-8 text-xs cursor-pointer"
-            disabled={loading}
-          />
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Formato PGM P2 ou P5, 8 bits. As dimensões são detectadas automaticamente.
-          </p>
+      <div className="pl-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-sm">
+              <UploadCloud className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight text-slate-950">Importar imagem</h3>
+              <p className="text-[11px] font-medium text-slate-500">Leitura de arquivo em escala de cinza</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-teal-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-teal-800">Entrada PGM</span>
         </div>
 
-        {data.filename && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground bg-secondary p-2 rounded">
-            <FileText className="w-3 h-3" />
-            <span className="truncate">{data.filename}</span>
+        <div className="space-y-3 border-t border-teal-100/80 p-4 text-xs">
+          <div className="rounded-2xl border border-teal-100 bg-white/80 p-3 shadow-sm">
+            <Label htmlFor={`file-${id}`} className="text-xs font-bold text-slate-700">
+              Arquivo PGM
+            </Label>
+            <Input
+              id={`file-${id}`}
+              type="file"
+              accept=".pgm"
+              onChange={handleFileChange}
+              className="mt-2 h-10 cursor-pointer rounded-2xl bg-white text-xs file:mr-3 file:rounded-xl file:bg-teal-50 file:px-3 file:py-1 file:text-xs file:font-bold file:text-teal-700"
+              disabled={loading}
+              aria-label="Selecionar arquivo PGM"
+            />
+            <p className="mt-2 text-[10px] text-slate-500">
+              Formatos aceitos: PGM P2 ou P5, 8 bits.
+            </p>
           </div>
-        )}
 
-        {data.imageData && (
-          <div className="text-xs text-green-500 font-medium">
-            ✓ {data.width}×{data.height} ({data.imageData.length} pixels)
-          </div>
-        )}
+          {data.filename && (
+              <div className="flex items-center gap-2 rounded-2xl border border-teal-100 bg-teal-50/80 p-2.5 text-xs text-teal-800">
+              <FileText className="w-3 h-3" />
+              <span className="truncate font-semibold">{data.filename}</span>
+            </div>
+          )}
+
+          {data.imageData && (
+            <div className="rounded-2xl bg-teal-700 p-2.5 text-xs font-bold text-white">
+              {data.width}×{data.height} ({data.imageData.length} pixels)
+            </div>
+          )}
+        </div>
       </div>
 
       <Dialog open={dialog.isOpen} onOpenChange={closeDialog}>

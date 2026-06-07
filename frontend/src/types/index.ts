@@ -264,11 +264,11 @@ export const PRESET_KERNELS: Record<string, KernelPreset> = {
 // ============ NODE COLORS ============
 
 export const NODE_COLORS: Record<NodeType, string> = {
-  RAW_READER: '#22c55e',
-  CONVOLUTION: '#3b82f6',
-  POINT_OP: '#f59e0b',
-  DISPLAY: '#8b5cf6',
-  HISTOGRAM: '#ec4899',
+  RAW_READER: '#0f766e',
+  CONVOLUTION: '#2563eb',
+  POINT_OP: '#f97316',
+  DISPLAY: '#7c3aed',
+  HISTOGRAM: '#db2777',
   DIFFERENCE: '#ef4444',
-  SAVE: '#10b981',
+  SAVE: '#059669',
 }

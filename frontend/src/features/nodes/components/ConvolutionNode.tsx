@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { useState } from 'react'
-import { Grid3x3 } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
@@ -112,120 +112,126 @@ export default function ConvolutionNode({ data, id, selected }: NodeProps<Convol
   return (
     <div
       className={cn(
-        'rounded-lg border-2 bg-card p-3 shadow-lg min-w-[260px]',
-        selected ? 'border-primary' : 'border-blue-500'
+        'relative min-w-[380px] overflow-visible rounded-[1.8rem] border bg-gradient-to-br from-blue-50 via-white to-sky-50 text-slate-900 shadow-node',
+        selected ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-100'
       )}
     >
+      <div className="absolute inset-y-0 left-0 w-3 rounded-l-[1.8rem] bg-blue-600" />
       <Handle
         type="target"
         position={Position.Left}
-        className="!bg-blue-500 !border-blue-600"
+        className="!h-4 !w-4 !border-blue-600 !bg-white"
       />
+      <span className="pointer-events-none absolute -left-7 top-1/2 -translate-y-1/2 rounded-full border border-blue-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-blue-700">img</span>
 
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-        <Grid3x3 className="w-4 h-4 text-blue-500" />
-        <h3 className="font-bold text-sm text-blue-500">Convolução</h3>
-      </div>
-
-      <div className="space-y-3 text-xs">
-        <div>
-          <Label htmlFor={`preset-${id}`} className="text-xs text-muted-foreground">
-            Tipo de Filtro
-          </Label>
-          <Select value={preset} onValueChange={handlePresetChange}>
-            <SelectTrigger id={`preset-${id}`} className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(PRESET_KERNELS).map(([key, value]) => (
-                <SelectItem key={key} value={key} className="text-xs">
-                  {value.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="pl-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm">
+              <Filter className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight text-slate-950">Filtro por máscara</h3>
+              <p className="text-[11px] font-medium text-slate-500">Kernel configurável ou filtro conhecido</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-800">Convolução</span>
         </div>
 
-        <div>
-          <Label htmlFor={`size-${id}`} className="text-xs text-muted-foreground">
-            Tamanho da Máscara
-          </Label>
-          <Select value={kernelSize.toString()} onValueChange={handleKernelSizeChange}>
-            <SelectTrigger id={`size-${id}`} className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {KERNEL_SIZES.map((size) => (
-                <SelectItem key={size} value={size.toString()} className="text-xs">
-                  {size}×{size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="grid gap-3 border-t border-blue-100/80 p-4 text-xs md:grid-cols-[145px_1fr]">
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor={`preset-${id}`} className="text-xs font-bold text-slate-700">
+                Filtro
+              </Label>
+              <Select value={preset} onValueChange={handlePresetChange}>
+                <SelectTrigger id={`preset-${id}`} className="mt-1 h-9 rounded-2xl bg-white text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(PRESET_KERNELS).map(([key, value]) => (
+                    <SelectItem key={key} value={key} className="text-xs">
+                      {value.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1 block">
-            {isMedianFilter ? `Janela ${kernelSize}×${kernelSize}` : `Kernel ${kernelSize}×${kernelSize}`}
-          </Label>
-          <div
-            className="grid gap-1"
-            style={{
-              gridTemplateColumns: `repeat(${kernelSize}, 1fr)`,
-            }}
-          >
-            {kernel.map((row, i) =>
-              row.map((val, j) => (
+            <div>
+              <Label htmlFor={`size-${id}`} className="text-xs font-bold text-slate-700">
+                Máscara
+              </Label>
+              <Select value={kernelSize.toString()} onValueChange={handleKernelSizeChange}>
+                <SelectTrigger id={`size-${id}`} className="mt-1 h-9 rounded-2xl bg-white text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {KERNEL_SIZES.map((size) => (
+                    <SelectItem key={size} value={size.toString()} className="text-xs">
+                      {size}×{size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {!isMedianFilter && (
+              <div>
+                <Label htmlFor={`divisor-${id}`} className="text-xs font-bold text-slate-700">
+                  Divisor
+                </Label>
                 <Input
-                  key={`${i}-${j}`}
+                  id={`divisor-${id}`}
                   type="number"
-                  value={val}
-                  onChange={(e) => handleKernelChange(i, j, e.target.value)}
-                  className="h-7 text-xs text-center p-0"
+                  value={divisor || ''}
+                  onChange={(e) => handleDivisorChange(e.target.value)}
+                  className="mt-1 h-9 rounded-2xl bg-white text-xs"
+                  placeholder="1"
                   step="0.1"
-                  placeholder="0"
-                  disabled={isMedianFilter}
                 />
-              ))
+              </div>
             )}
           </div>
-        </div>
 
-        {!isMedianFilter && (
-          <div>
-            <Label htmlFor={`divisor-${id}`} className="text-xs text-muted-foreground">
-              Divisor
+          <div className="rounded-3xl border border-blue-100 bg-white/82 p-3 shadow-sm">
+            <Label className="mb-2 block text-xs font-bold text-slate-700">
+              {isMedianFilter ? `Janela ${kernelSize}×${kernelSize}` : `Kernel ${kernelSize}×${kernelSize}`}
             </Label>
-            <Input
-              id={`divisor-${id}`}
-              type="number"
-              value={divisor || ''}
-              onChange={(e) => handleDivisorChange(e.target.value)}
-              className="h-8 text-xs"
-              placeholder="1"
-              step="0.1"
-            />
+            <div
+              className="grid gap-1.5"
+              style={{
+                gridTemplateColumns: `repeat(${kernelSize}, 1fr)`,
+              }}
+            >
+              {kernel.map((row, i) =>
+                row.map((val, j) => (
+                  <Input
+                    key={`${i}-${j}`}
+                    type="number"
+                    value={val}
+                    onChange={(e) => handleKernelChange(i, j, e.target.value)}
+                    className="h-8 rounded-xl bg-blue-50/70 p-0 text-center text-xs font-semibold"
+                    step="0.1"
+                    placeholder="0"
+                    disabled={isMedianFilter}
+                  />
+                ))
+              )}
+            </div>
+            <div className="mt-2 rounded-2xl bg-blue-50 px-2 py-1.5 text-[10px] text-blue-800">
+              {isMedianFilter ? `Mediana ${kernelSize}×${kernelSize}` : `${PRESET_KERNELS[preset]?.name} - Kernel editável`}
+            </div>
           </div>
-        )}
-
-        {isMedianFilter && (
-          <div className="text-[10px] text-muted-foreground bg-secondary p-2 rounded">
-            Filtro de mediana {kernelSize}×{kernelSize} - Coleta todos os pixels da janela
-          </div>
-        )}
-
-        {!isMedianFilter && (
-          <div className="text-[10px] text-muted-foreground bg-secondary p-2 rounded">
-            {PRESET_KERNELS[preset]?.name} - Kernel editável
-          </div>
-        )}
+        </div>
       </div>
 
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-blue-500 !border-blue-600"
+        className="!h-4 !w-4 !bg-blue-600 !border-white"
       />
+      <span className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2 rounded-full bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">out</span>
     </div>
   )
 }
