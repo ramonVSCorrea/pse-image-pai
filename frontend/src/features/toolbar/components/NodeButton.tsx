@@ -10,6 +10,7 @@ const NODE_DETAILS: Record<NodeType, { description: string; category: string; ti
   DISPLAY: { description: 'Mostrar a imagem gerada por uma etapa', category: 'Visualização', tint: 'bg-violet-50' },
   HISTOGRAM: { description: 'Analisar frequências dos níveis de cinza', category: 'Análise', tint: 'bg-pink-50' },
   DIFFERENCE: { description: 'Calcular diferença entre duas imagens', category: '2 entradas', tint: 'bg-red-50' },
+  COMPLEMENT: { description: 'Inverter os tons da imagem com 255 menos pixel', category: 'Negativo', tint: 'bg-indigo-50' },
   SAVE: { description: 'Gravar a imagem final em arquivo', category: 'Saída PGM', tint: 'bg-emerald-50' },
 }
 

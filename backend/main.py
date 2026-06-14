@@ -1,180 +1,222 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+"""API HTTP do backend do PSE-Image.
+
+O backend tem duas responsabilidades principais:
+
+1. Ler arquivos PGM enviados pelo frontend e transformar a imagem em uma lista
+   de pixels em escala de cinza.
+2. Receber o grafo de blocos montado pelo usuario e executar cada etapa na
+   ordem correta.
+"""
+
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+
 from models import ProcessRequest, ProcessResponse
-from processor import ImageProcessor
+from processor import ImageFlowEngine
 
-app = FastAPI(title="PSE-Image Backend", version="1.0.0")
 
-# Configurar CORS para permitir requisições do frontend
+# Instancia principal da aplicacao FastAPI.
+app = FastAPI(title="PSE-Image Backend", version="2.0.0")
+
+
+# Lista de origens autorizadas a chamar a API pelo navegador.
+# Mantem localhost para desenvolvimento e o dominio publicado do projeto.
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:3000"
+]
+
+
+# Middleware necessario para o frontend React conseguir acessar a API.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://pseimage.yrttech.com", "https://pseimage.yrttech.com"],  # Vite e CRA
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-processor = ImageProcessor()
 
-def _read_pgm_token(contents: bytes, index: int):
+# O motor de processamento fica separado da camada HTTP.
+engine = ImageFlowEngine()
+
+
+class PgmTokenReader:
+    """Leitor pequeno para tokens do cabecalho PGM.
+
+    PGM possui cabecalho textual mesmo no formato binario P5. Este leitor anda
+    pelo arquivo byte a byte, ignorando espacos e comentarios iniciados por `#`.
     """
-    Le um token do cabecalho PGM ignorando espacos e comentarios.
-    Retorna (token, proximo_indice).
+
+    def __init__(self, content: bytes):
+        # Guarda todos os bytes do arquivo enviado.
+        self.content = content
+        # Guarda a posicao atual de leitura.
+        self.index = 0
+
+    def _skip_spaces_and_comments(self) -> None:
+        """Avanca enquanto encontra espacos em branco ou comentarios."""
+
+        while self.index < len(self.content):
+            current = self.content[self.index]
+
+            # Espacos, tabs e quebras de linha nao fazem parte dos tokens.
+            if current in b" \t\r\n":
+                self.index += 1
+                continue
+
+            # Comentarios em PGM comecam com # e vao ate o fim da linha.
+            if current == ord("#"):
+                while self.index < len(self.content) and self.content[self.index] not in b"\r\n":
+                    self.index += 1
+                continue
+
+            # Qualquer outro byte marca o inicio de um token real.
+            break
+
+    def read_token(self) -> str:
+        """Retorna o proximo token textual do arquivo."""
+
+        self._skip_spaces_and_comments()
+
+        start = self.index
+
+        # O token termina em espaco, quebra de linha ou inicio de comentario.
+        while self.index < len(self.content) and self.content[self.index] not in b" \t\r\n#":
+            self.index += 1
+
+        if start == self.index:
+            raise ValueError("Cabecalho PGM incompleto")
+
+        try:
+            return self.content[start:self.index].decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise ValueError("Cabecalho PGM deve usar texto ASCII") from exc
+
+    def move_to_binary_pixels(self) -> None:
+        """Posiciona o cursor no primeiro byte de pixels de um PGM P5."""
+
+        # Depois do valor maximo, a especificacao exige um separador antes dos
+        # bytes crus da imagem. Apenas esse separador deve ser consumido.
+        if self.index < len(self.content) and self.content[self.index] in b" \t\r\n":
+            if self.content[self.index] == ord("\r") and self.index + 1 < len(self.content):
+                if self.content[self.index + 1] == ord("\n"):
+                    self.index += 2
+                    return
+            self.index += 1
+
+
+def parse_pgm(content: bytes) -> dict[str, object]:
+    """Converte um arquivo PGM P2 ou P5 em dados de imagem.
+
+    O TP pede imagens acromaticas de 8 bits por pixel. Por isso, a funcao aceita
+    apenas PGM com valor maximo 255 e retorna pixels no intervalo 0..255.
     """
-    length = len(contents)
 
-    while index < length:
-        byte = contents[index]
-        if byte in b" \t\r\n":
-            index += 1
-            continue
-        if byte == ord('#'):
-            while index < length and contents[index] not in b"\r\n":
-                index += 1
-            continue
-        break
+    reader = PgmTokenReader(content)
 
-    start = index
-    while index < length and contents[index] not in b" \t\r\n#":
-        index += 1
+    # Os quatro primeiros tokens formam o cabecalho minimo do PGM.
+    magic = reader.read_token()
+    width = int(reader.read_token())
+    height = int(reader.read_token())
+    max_value = int(reader.read_token())
 
-    if start == index:
-        raise ValueError("Cabecalho PGM incompleto")
-
-    return contents[start:index].decode("ascii"), index
-
-def parse_pgm(contents: bytes):
-    """
-    Faz parser de arquivos PGM P2 (ASCII) e P5 (binario), 8 bits/pixel.
-    """
-    try:
-        magic, index = _read_pgm_token(contents, 0)
-        width_token, index = _read_pgm_token(contents, index)
-        height_token, index = _read_pgm_token(contents, index)
-        max_value_token, index = _read_pgm_token(contents, index)
-    except UnicodeDecodeError:
-        raise ValueError("Cabecalho PGM deve estar em ASCII")
-
+    # `P2` e ASCII; `P5` e binario. Outros formatos Netpbm nao sao aceitos.
     if magic not in {"P2", "P5"}:
         raise ValueError("Formato PGM invalido. Use P2 ou P5")
 
-    width = int(width_token)
-    height = int(height_token)
-    max_value = int(max_value_token)
-
+    # Dimensoes precisam ser positivas para formar uma imagem valida.
     if width <= 0 or height <= 0:
         raise ValueError("Dimensoes PGM invalidas")
 
+    # O trabalho limita o projeto a imagens de 8 bits/pixel.
     if max_value != 255:
         raise ValueError("Apenas PGM 8 bits com valor maximo 255 e suportado")
 
-    expected_pixels = width * height
+    total_pixels = width * height
 
+    # P2 guarda cada pixel como numero textual separado por espaco.
     if magic == "P2":
-        pixel_data = []
-        while len(pixel_data) < expected_pixels:
-            token, index = _read_pgm_token(contents, index)
-            value = int(token)
+        pixels: list[int] = []
+        for _ in range(total_pixels):
+            value = int(reader.read_token())
             if value < 0 or value > 255:
                 raise ValueError("PGM contem pixel fora do intervalo 0-255")
-            pixel_data.append(value)
+            pixels.append(value)
 
-        return {
-            "width": width,
-            "height": height,
-            "data": pixel_data
-        }
+        return {"width": width, "height": height, "data": pixels}
 
-    if index < len(contents) and contents[index] in b" \t\r\n":
-        if contents[index] == ord('\r') and index + 1 < len(contents) and contents[index + 1] == ord('\n'):
-            index += 2
-        else:
-            index += 1
+    # P5 guarda os pixels como bytes crus logo apos o cabecalho.
+    reader.move_to_binary_pixels()
+    raw_pixels = content[reader.index:reader.index + total_pixels]
 
-    while index < len(contents) and contents[index] == ord('#'):
-        while index < len(contents) and contents[index] not in b"\r\n":
-            index += 1
-        if index < len(contents) and contents[index] == ord('\r') and index + 1 < len(contents) and contents[index + 1] == ord('\n'):
-            index += 2
-        elif index < len(contents) and contents[index] in b"\r\n":
-            index += 1
-
-    pixel_bytes = contents[index:index + expected_pixels]
-    if len(pixel_bytes) != expected_pixels:
+    # Se faltarem bytes, o arquivo esta truncado ou possui cabecalho incorreto.
+    if len(raw_pixels) != total_pixels:
         raise ValueError(
-            f"PGM P5 invalido: esperado {expected_pixels} bytes de pixels, recebido {len(pixel_bytes)}"
+            f"PGM P5 invalido: esperado {total_pixels} bytes de pixels, recebido {len(raw_pixels)}"
         )
 
-    pixel_data = []
-    for pixel in pixel_bytes:
-        pixel_data.append(pixel)
+    return {"width": width, "height": height, "data": list(raw_pixels)}
 
-    return {
-        "width": width,
-        "height": height,
-        "data": pixel_data
-    }
 
 @app.get("/")
-def read_root():
+def read_root() -> dict[str, object]:
+    """Retorna informacoes simples sobre a API."""
+
     return {
         "message": "PSE-Image Backend API",
-        "version": "1.0.0",
-        "endpoints": ["/process", "/health"]
+        "version": "2.0.0",
+        "endpoints": ["/health", "/upload-raw", "/process"],
     }
 
+
 @app.get("/health")
-def health_check():
+def health_check() -> dict[str, str]:
+    """Endpoint usado para verificar se o backend esta ativo."""
+
     return {"status": "ok"}
 
-@app.post("/process", response_model=ProcessResponse)
-async def process_graph(request: ProcessRequest):
-    """
-    Processa o grafo de nós e retorna os resultados
-    """
-    try:
-        # Converter para dicts
-        nodes = [node.model_dump() for node in request.nodes]
-        edges = [edge.model_dump() for edge in request.edges]
-
-        # Processar
-        results = processor.process_graph(nodes, edges)
-
-        return ProcessResponse(results=results)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/upload-raw")
-async def upload_raw_file(file: UploadFile = File(...)):
+async def upload_raw_file(file: UploadFile = File(...)) -> dict[str, object]:
+    """Recebe um `.pgm` e devolve largura, altura e pixels.
+
+    O nome da rota foi mantido como `/upload-raw` para nao quebrar o frontend
+    existente, apesar de o formato aceito atualmente ser PGM.
     """
-    Faz upload de um arquivo PGM e retorna os pixels em escala de cinza.
-    O parser e manual e aceita P2 (ASCII) e P5 (binario), 8 bits/pixel.
-    """
+
+    filename = file.filename or ""
+
+    # A validacao por extensao evita que o usuario envie JPG, PNG ou RAW.
+    if not filename.lower().endswith(".pgm"):
+        raise HTTPException(status_code=400, detail="Formato nao suportado. Carregue um arquivo PGM (.pgm).")
+
     try:
-        contents = await file.read()
-        filename = file.filename or ""
-        file_ext = filename.lower().split('.')[-1] if '.' in filename else ""
-
-        if file_ext != 'pgm':
-            raise HTTPException(
-                status_code=400,
-                detail="Formato não suportado. Carregue um arquivo PGM (.pgm)."
-            )
-
-        try:
-            return parse_pgm(contents)
-        except Exception as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Erro ao processar arquivo PGM: {str(e)}"
-            )
-
+        content = await file.read()
+        return parse_pgm(content)
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Erro ao processar arquivo PGM: {exc}") from exc
+
+
+@app.post("/process", response_model=ProcessResponse)
+async def process_graph(request: ProcessRequest) -> ProcessResponse:
+    """Executa o grafo de blocos montado na interface."""
+
+    try:
+        # `model_dump` transforma os modelos Pydantic em dicionarios comuns,
+        # formato esperado pelo motor de processamento.
+        nodes = [node.model_dump() for node in request.nodes]
+        edges = [edge.model_dump() for edge in request.edges]
+        results = engine.run(nodes, edges)
+        return ProcessResponse(results=results)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
 
 if __name__ == "__main__":
+    # Permite iniciar o backend com `python main.py` durante o desenvolvimento.
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

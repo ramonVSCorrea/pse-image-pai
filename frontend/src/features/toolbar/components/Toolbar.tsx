@@ -6,6 +6,7 @@ import {
   Monitor,
   BarChart3,
   GitCompare,
+  Contrast,
   FileDown,
   Play,
   Trash2,
@@ -72,7 +73,7 @@ export function Toolbar({ onAddNode, onProcess, onClear, isProcessing, nodeCount
             <h2 className="text-sm font-bold text-slate-950">Biblioteca de operações</h2>
             <p className="mt-0.5 text-xs text-slate-500">Escolha uma operação e conecte ao pipeline</p>
           </div>
-          <span className="rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase text-slate-500">7 módulos</span>
+          <span className="rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase text-slate-500">8 módulos</span>
         </div>
 
         <div className="grid max-h-[31vh] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-4 lg:max-h-[calc(100vh-220px)] lg:grid-cols-1">
@@ -116,6 +117,13 @@ export function Toolbar({ onAddNode, onProcess, onClear, isProcessing, nodeCount
             type="DIFFERENCE"
             icon={GitCompare}
             label="Diferença"
+            onClick={onAddNode}
+          />
+
+          <NodeButton
+            type="COMPLEMENT"
+            icon={Contrast}
+            label="Complemento"
             onClick={onAddNode}
           />
 

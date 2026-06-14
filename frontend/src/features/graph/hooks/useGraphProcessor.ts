@@ -108,6 +108,20 @@ export function useGraphProcessor(
             }
           }
 
+          if (node.type === 'COMPLEMENT' && result.type === 'image' && result.width && result.height && result.data) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                result: {
+                  width: result.width,
+                  height: result.height,
+                  data: result.data,
+                },
+              },
+            }
+          }
+
           if (node.type === 'SAVE' && result.type === 'save' && result.image) {
             return {
               ...node,
