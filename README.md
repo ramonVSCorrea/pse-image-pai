@@ -1,247 +1,581 @@
-# PSE-Image
+# 🧪 Manual de Utilização do PSE-Image
 
-Ambiente visual para montar e executar pipelines de processamento de imagens em escala de cinza. O projeto combina uma interface em React Flow com uma API em FastAPI que processa o grafo de blocos e aplica operações pixel a pixel.
+## 📌 Sumário
 
-## Visão Geral
+- [1. Visão Geral](#1--visão-geral)
+- [2. Requisitos](#2--requisitos)
+- [3. Estrutura do Projeto](#3--estrutura-do-projeto)
+- [4. Como Rodar](#4--como-rodar)
+- [5. Como Usar a Interface](#5--como-usar-a-interface)
+- [6. Blocos Disponíveis](#6--blocos-disponíveis)
+- [7. Exemplos de Fluxos](#7--exemplos-de-fluxos)
+- [8. Observações Técnicas](#8--observações-técnicas)
+- [9. Encerramento](#9--encerramento)
 
-O PSE-Image permite construir fluxos conectando blocos de leitura, processamento, análise, visualização e gravação. Cada bloco representa uma etapa do pipeline, e o backend executa as operações em ordem topológica, respeitando as dependências entre os nós.
+---
 
-O foco do projeto é deixar o processamento explícito e didático, com algoritmos implementados manualmente em Python, sem depender de bibliotecas prontas de visão computacional.
+## 1. 🎯 Visão Geral
 
-## Recursos
+O **PSE-Image** é um Problem-Solving Environment para processamento de imagens. Ele permite que o usuário monte fluxos de processamento por meio de blocos gráficos conectáveis, sem precisar escrever código.
 
-- Interface visual com blocos conectáveis usando React Flow.
-- Backend FastAPI para processamento do grafo.
-- Upload de imagens PGM em escala de cinza, nos formatos `P2` e `P5`, com 8 bits por pixel.
-- Operações de convolução com kernel customizável.
-- Filtros de média, mediana e laplaciano.
-- Operações pontuais de brilho e limiarização.
-- Cálculo de histograma de intensidades.
-- Diferença absoluta entre duas imagens de mesmas dimensões.
-- Visualização de resultados intermediários no fluxo.
-- Exportação de resultado em arquivo `.pgm`.
-- Tema claro/escuro.
+O usuário pode:
 
-## Blocos Disponíveis
+- 📂 Carregar imagens PGM em escala de cinza;
+- 🔗 Conectar blocos para formar pipelines;
+- ⚙️ Parametrizar operações de processamento;
+- ▶️ Executar o fluxo completo;
+- 👁️ Visualizar resultados intermediários ou finais;
+- 📊 Analisar histogramas;
+- 💾 Salvar imagens processadas em PGM.
 
-| Bloco | Função |
+<p align="center">
+  <img src="./manual_pse_image_assets/fig01_interface_geral.jpg" alt="Interface geral do PSE-Image" width="900">
+</p>
+<p align="center"><em>Figura 1 — Interface geral do PSE-Image, com biblioteca de operações, workspace e pipeline montado.</em></p>
+
+### 🧱 Arquitetura Geral
+
+| Camada | Tecnologia | Função |
+| --- | --- | --- |
+| Frontend | React, TypeScript, Vite, Tailwind, React Flow | Interface gráfica com blocos conectáveis |
+| Backend | Python, FastAPI, Pydantic | Upload de PGM e processamento do grafo |
+| Formato de imagem | PGM `P2` e `P5` | Imagens acromáticas em 8 bits/pixel |
+
+---
+
+## 2. ✅ Requisitos
+
+### 2.1 🖥️ Requisitos de Software
+
+Instale os seguintes itens antes de executar o projeto:
+
+| Software | Versão recomendada | Uso |
+| --- | --- | --- |
+| Node.js | 18 ou superior | Executar o frontend |
+| npm | Instalado com Node.js | Instalar dependências do frontend |
+| Python | 3.10 ou superior | Executar o backend |
+| Navegador | Chrome, Edge ou Firefox | Acessar a interface |
+
+### 2.2 🖼️ Requisitos das Imagens
+
+O sistema aceita apenas imagens PGM em escala de cinza.
+
+| Item | Exigência |
 | --- | --- |
-| Leitura | Carrega uma imagem PGM e fornece os pixels ao grafo. |
-| Convolução | Aplica kernel customizado ou filtros de média, mediana e laplaciano. |
-| Pontual | Aplica brilho ou limiarização em cada pixel. |
-| Exibir | Mostra a imagem resultante e propaga os dados para outros blocos. |
-| Histograma | Calcula a frequência de intensidades de 0 a 255. |
-| Diferença | Calcula a diferença absoluta entre duas imagens. |
-| Salvar | Grava o resultado em `backend/output/` no formato PGM P5. |
+| Extensão | `.pgm` |
+| Formatos aceitos | `P2` ASCII e `P5` binário |
+| Valor máximo | `255` |
+| Tipo | Acromática, escala de cinza |
+| Profundidade | 8 bits por pixel |
 
-## Tecnologias
+> ⚠️ Arquivos `.jpg`, `.png`, `.bmp` ou outros formatos não são aceitos diretamente.
 
-### Frontend
+---
 
-- React 18
-- TypeScript
-- Vite
-- React Flow
-- Tailwind CSS
-- Radix UI
-- Axios
-
-### Backend
-
-- Python 3
-- FastAPI
-- Pydantic
-- Uvicorn
-- python-multipart
-
-## Estrutura
+## 3. 🗂️ Estrutura do Projeto
 
 ```text
 pse-image-pai/
 ├── backend/
-│   ├── main.py                 # API FastAPI e upload de PGM
-│   ├── models.py               # Modelos Pydantic das requisições
-│   ├── processor.py            # Processamento do grafo e das imagens
-│   ├── requirements.txt        # Dependências Python
-│   ├── images/                 # Imagens de apoio/teste
-│   └── output/                 # Arquivos gerados pelo bloco Salvar
+│   ├── main.py
+│   ├── models.py
+│   ├── processor.py
+│   ├── requirements.txt
+│   ├── operations/
+│   │   ├── common.py
+│   │   ├── raw_reader/
+│   │   ├── point_operation/
+│   │   ├── convolution/
+│   │   ├── display/
+│   │   ├── histogram/
+│   │   ├── difference/
+│   │   ├── complement/
+│   │   └── save/
+│   └── output/
 ├── frontend/
 │   ├── src/
-│   │   ├── components/ui/      # Componentes base de UI
-│   │   ├── contexts/           # Contextos globais
-│   │   ├── features/           # Módulos da aplicação
-│   │   │   ├── canvas/         # Canvas do React Flow
-│   │   │   ├── graph/          # Estado e processamento do grafo
-│   │   │   ├── nodes/          # Componentes dos blocos
-│   │   │   ├── theme/          # Tema claro/escuro
-│   │   │   └── toolbar/        # Barra lateral de blocos e ações
-│   │   ├── lib/                # Cliente HTTP e utilitários
-│   │   ├── types/              # Tipos e presets de kernels
-│   │   ├── App.tsx             # Componente principal
-│   │   └── main.tsx            # Entrada da aplicação
 │   ├── package.json
 │   └── vite.config.ts
-├── vercel.json
-└── README.md
+├── images_database/
+├── README.md
+├── MANUAL.md
+└── TP_PAI.pdf
 ```
 
-## Pré-requisitos
+### 📁 Pastas importantes
 
-- Node.js 18 ou superior.
-- npm.
-- Python 3.10 ou superior recomendado.
+| Caminho | Conteúdo |
+| --- | --- |
+| `backend/operations/` | Funcionalidades do backend, separadas por diretório |
+| `backend/output/` | Arquivos PGM gerados pelo bloco de salvamento |
+| `frontend/src/` | Código da interface gráfica |
+| `images_database/` | Imagens PGM de exemplo/base de dados |
 
-## Como Executar
+---
 
-Execute o backend e o frontend em terminais separados.
+## 4. 🚀 Como Rodar
 
-### 1. Backend
+> O backend e o frontend devem ficar abertos ao mesmo tempo, em terminais separados.
+
+### 4.1 🐍 Backend
+
+Abra um terminal na raiz do projeto.
+
+Entre na pasta do backend:
 
 ```bash
 cd backend
+```
+
+Crie o ambiente virtual:
+
+```bash
 python -m venv venv
 ```
 
-No Windows:
+Ative no Windows:
 
 ```bash
 venv\Scripts\activate
 ```
 
-No Linux/macOS:
+Ative no Linux/macOS:
 
 ```bash
 source venv/bin/activate
 ```
 
-Instale as dependências e suba a API:
+Instale as dependências:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Inicie a API:
+
+```bash
 python main.py
 ```
 
-A API ficará disponível em:
+Backend disponível em:
 
 ```text
 http://localhost:8000
 ```
 
-### 2. Frontend
+### 🔌 Rotas principais da API
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `GET` | `/` | Informações básicas da API |
+| `GET` | `/health` | Verifica se a API está ativa |
+| `POST` | `/upload-raw` | Recebe `.pgm` e devolve pixels |
+| `POST` | `/process` | Processa o grafo enviado pelo frontend |
+
+### 4.2 ⚛️ Frontend
+
+Abra outro terminal na raiz do projeto.
+
+Entre na pasta do frontend:
 
 ```bash
 cd frontend
+```
+
+Instale as dependências:
+
+```bash
 npm install
+```
+
+Inicie a interface:
+
+```bash
 npm run dev
 ```
 
-A aplicação ficará disponível em:
+Frontend disponível em:
 
 ```text
 http://localhost:5173
 ```
 
-## Configuração de Ambiente
+Abra esse endereço no navegador.
 
-Por padrão, o frontend usa a API em `http://localhost:8000`.
+---
 
-Para apontar para outra URL, crie um arquivo `.env.local` dentro de `frontend/`:
+## 5. 🧭 Como Usar a Interface
 
-```env
-VITE_API_URL=http://localhost:8000
-```
+### 5.1 🖼️ Tela Principal
 
-## Scripts do Frontend
+Ao abrir o sistema, você verá:
 
-Execute dentro da pasta `frontend/`.
-
-| Comando | Descrição |
+| Área | Função |
 | --- | --- |
-| `npm run dev` | Inicia o servidor Vite em modo desenvolvimento. |
-| `npm run build` | Compila TypeScript e gera a versão de produção. |
-| `npm run preview` | Serve localmente a build de produção. |
-| `npm run vercel-build` | Comando de build usado pela Vercel. |
+| Barra superior | Mostra o nome do sistema e ações principais |
+| Biblioteca de operações | Lista os blocos disponíveis |
+| Workspace | Área central onde os blocos são adicionados e conectados |
 
-## Endpoints da API
+<p align="center">
+  <img src="./manual_pse_image_assets/fig01_interface_geral.jpg" alt="Tela principal do sistema" width="900">
+</p>
+<p align="center"><em>Figura 2 — Tela principal com um fluxo simples montado.</em></p>
 
-| Método | Rota | Descrição |
+### 5.2 ➕ Adicionar um Bloco
+
+Na biblioteca de operações, clique no bloco desejado.
+
+Blocos disponíveis:
+
+| Bloco | Uso |
+| --- | --- |
+| 📂 Entrada PGM | Carregar imagem |
+| 🧮 Filtro por máscara | Aplicar convolução/filtros |
+| 🎚️ Ajuste ponto a ponto | Brilho ou limiarização |
+| 👁️ Visualização | Exibir imagem |
+| 📊 Histograma | Plotar frequências de cinza |
+| 🔀 Diferença | Comparar duas imagens |
+| 🌗 Complemento | Gerar negativo |
+| 💾 Exportar PGM | Salvar imagem |
+
+### 5.3 🔗 Conectar Blocos
+
+Cada bloco possui pontos de conexão:
+
+| Ponto | Local comum | Função |
 | --- | --- | --- |
-| `GET` | `/` | Retorna informações básicas da API. |
-| `GET` | `/health` | Verifica se o backend está respondendo. |
-| `POST` | `/upload-raw` | Recebe um arquivo `.pgm` e retorna `width`, `height` e pixels. |
-| `POST` | `/process` | Recebe nós e arestas do grafo e retorna os resultados processados. |
+| Entrada | Lado esquerdo | Recebe imagem ou dados |
+| Saída | Lado direito | Envia resultado para outro bloco |
 
-## Formato de Imagem Suportado
+Passos:
 
-O upload aceita apenas arquivos `.pgm` em escala de cinza:
+1. Clique e segure no ponto de saída de um bloco;
+2. Arraste até o ponto de entrada de outro bloco;
+3. Solte para criar a conexão.
 
-- `P2`: PGM ASCII.
-- `P5`: PGM binário.
-- Valor máximo obrigatório: `255`.
-- Um byte por pixel no caso de `P5`.
+> ✅ O backend executa os blocos respeitando a ordem das conexões.
 
-Arquivos salvos pelo bloco Salvar são gravados em `backend/output/` como PGM `P5`.
+### 5.4 ▶️ Processar o Fluxo
 
-## Como Usar
+Depois de montar o pipeline:
 
-1. Inicie o backend e o frontend.
-2. Abra `http://localhost:5173` no navegador.
-3. Adicione um bloco Leitura.
-4. Selecione uma imagem `.pgm`.
-5. Adicione blocos de processamento, análise ou visualização.
-6. Conecte a saída de um bloco à entrada do próximo.
-7. Clique em Processar.
-8. Veja os resultados nos blocos Exibir, Histograma ou Salvar.
+1. Confira se a imagem foi carregada no bloco de entrada;
+2. Confira se os blocos estão conectados corretamente;
+3. Clique em **Executar pipeline**.
 
-## Exemplos de Fluxo
+O frontend envia o grafo para o backend, o backend processa as etapas e devolve os resultados para os blocos.
 
-Remover ruído com mediana:
+### 5.5 🧹 Limpar o Workspace
+
+Para remover todos os blocos e conexões, clique em **Reiniciar montagem**.
+
+> ⚠️ O sistema pede confirmação antes de limpar o workspace.
+
+---
+
+## 6. 🧩 Blocos Disponíveis
+
+### 6.1 📂 Entrada PGM
+
+**Função:** carregar uma imagem PGM para iniciar o fluxo.
+
+Como usar:
+
+1. Adicione o bloco `Entrada PGM`;
+2. Clique na área de upload;
+3. Selecione um arquivo `.pgm`;
+4. Aguarde o carregamento.
+
+Validações feitas pelo backend:
+
+| Validação | Descrição |
+| --- | --- |
+| Extensão | O arquivo deve ser `.pgm` |
+| Formato | Deve ser `P2` ou `P5` |
+| Valor máximo | Deve ser `255` |
+| Dimensões | Largura e altura precisam ser válidas |
+| Pixels | A quantidade de pixels deve bater com as dimensões |
+
+**Saída:** imagem em escala de cinza no formato interno do sistema.
+
+### 6.2 🧮 Filtro por Máscara
+
+**Função:** aplicar convolução ou filtros locais sobre a imagem.
+
+Filtros disponíveis:
+
+| Filtro | Efeito |
+| --- | --- |
+| Média | Suaviza a imagem |
+| Mediana | Reduz ruído preservando bordas |
+| Laplaciano | Destaca mudanças bruscas de intensidade |
+| Kernel configurável | Permite pesos definidos pelo usuário |
+
+Parâmetros:
+
+| Parâmetro | Valores/uso |
+| --- | --- |
+| Tamanho da máscara | `3x3`, `5x5`, `7x7`, `9x9` |
+| Pesos do kernel | Editáveis quando permitido |
+| Divisor | Usado na convolução |
+
+Funcionamento resumido:
 
 ```text
-[Leitura] -> [Convolução: Mediana 3x3] -> [Exibir]
+novo_pixel = soma(pixel_vizinho * peso_da_mascara) / divisor
 ```
 
-Suavizar imagem e visualizar histograma:
+<p align="center">
+  <img src="./manual_pse_image_assets/fig03_convolucao.jpg" alt="Bloco de convolução" width="900">
+</p>
+<p align="center"><em>Figura 3 — Exemplo de uso do bloco Filtro por máscara.</em></p>
+
+**Saída:** nova imagem com a mesma largura e altura da entrada.
+
+### 6.3 🎚️ Ajuste Ponto a Ponto
+
+**Função:** aplicar uma operação individual em cada pixel.
+
+Operações disponíveis:
+
+| Operação | Regra |
+| --- | --- |
+| Brilho | `saida = pixel + valor` |
+| Limiarização | `pixel >= valor ? 255 : 0` |
+
+Os valores são limitados ao intervalo `0..255` quando necessário.
+
+<p align="center">
+  <img src="./manual_pse_image_assets/fig02_ajuste_visualizacao.jpg" alt="Ajuste ponto a ponto e visualização" width="900">
+</p>
+<p align="center"><em>Figura 4 — Exemplo de fluxo com ajuste ponto a ponto e visualização do resultado.</em></p>
+
+**Saída:** nova imagem com as mesmas dimensões da entrada.
+
+### 6.4 👁️ Visualização
+
+**Função:** exibir uma imagem no workspace.
+
+Como usar:
+
+1. Conecte uma imagem ao bloco `Visualização`;
+2. Execute o pipeline;
+3. O resultado aparece em um canvas dentro do bloco.
+
+> 💡 O bloco também repassa a imagem, permitindo visualizar resultados intermediários sem interromper o fluxo.
+
+### 6.5 📊 Histograma
+
+**Função:** calcular e plotar a frequência dos níveis de cinza.
+
+Funcionamento:
 
 ```text
-[Leitura] -> [Convolução: Média 5x5] -> [Histograma]
+histograma[pixel] = histograma[pixel] + 1
 ```
 
-Detectar bordas com laplaciano:
+Exemplo:
 
 ```text
-[Leitura] -> [Convolução: Laplaciano] -> [Exibir]
+pixels = [0, 0, 128, 255]
+histograma[0] = 2
+histograma[128] = 1
+histograma[255] = 1
 ```
 
-Comparar imagem original com imagem processada:
+<p align="center">
+  <img src="./manual_pse_image_assets/fig04_histograma.jpg" alt="Bloco histograma" width="900">
+</p>
+<p align="center"><em>Figura 5 — Geração e exibição do histograma no frontend.</em></p>
+
+**Saída:** gráfico de histograma exibido no frontend.
+
+### 6.6 🔀 Diferença
+
+**Função:** comparar duas imagens com as mesmas dimensões.
+
+Regra:
 
 ```text
-[Leitura] -------------------------------> [Diferença] -> [Exibir]
+saida = abs(pixel_imagem_1 - pixel_imagem_2)
+```
+
+Restrição:
+
+| Condição | Obrigatória |
+| --- | --- |
+| Mesma largura | Sim |
+| Mesma altura | Sim |
+
+<p align="center">
+  <img src="./manual_pse_image_assets/fig06_diferenca.jpg" alt="Bloco diferença" width="900">
+</p>
+<p align="center"><em>Figura 6 — Comparação entre imagem original e processada usando o bloco Diferença.</em></p>
+
+**Saída:** imagem destacando as diferenças entre as entradas.
+
+### 6.7 🌗 Complemento
+
+**Função:** gerar o negativo da imagem.
+
+Regra:
+
+```text
+saida = 255 - pixel
+```
+
+Exemplo:
+
+```text
+entrada = [0, 10, 128, 255]
+saida   = [255, 245, 127, 0]
+```
+
+<p align="center">
+  <img src="./manual_pse_image_assets/fig05_complemento.jpg" alt="Bloco complemento" width="900">
+</p>
+<p align="center"><em>Figura 7 — Aplicação do complemento para gerar o negativo da imagem.</em></p>
+
+**Saída:** nova imagem com tons invertidos.
+
+### 6.8 💾 Exportar PGM
+
+**Função:** salvar uma imagem processada em arquivo PGM.
+
+Como usar:
+
+1. Conecte uma imagem ao bloco `Exportar PGM`;
+2. Informe o nome do arquivo;
+3. Execute o pipeline.
+
+O backend salva o arquivo em:
+
+```text
+backend/output/
+```
+
+Formato salvo:
+
+| Item | Valor |
+| --- | --- |
+| Tipo | PGM binário |
+| Magic number | `P5` |
+| Valor máximo | `255` |
+
+<p align="center">
+  <img src="./manual_pse_image_assets/fig07_exportar_pgm.jpg" alt="Bloco exportar PGM" width="900">
+</p>
+<p align="center"><em>Figura 8 — Configuração do bloco de exportação para salvar a imagem processada.</em></p>
+
+---
+
+## 7. 🔁 Exemplos de Fluxos
+
+### 7.1 👁️ Carregar e visualizar
+
+```text
+[Entrada PGM] -> [Visualização]
+```
+
+Uso: verificar se a imagem foi carregada corretamente.
+
+### 7.2 💡 Aumentar brilho
+
+```text
+[Entrada PGM] -> [Ajuste ponto a ponto: Brilho] -> [Visualização]
+```
+
+Uso: clarear ou escurecer a imagem.
+
+### 7.3 ⚫⚪ Limiarização
+
+```text
+[Entrada PGM] -> [Ajuste ponto a ponto: Limiarização] -> [Visualização]
+```
+
+Uso: transformar a imagem em preto e branco usando um valor limite.
+
+### 7.4 🌫️ Suavização por média
+
+```text
+[Entrada PGM] -> [Filtro por máscara: Média] -> [Visualização]
+```
+
+Uso: suavizar a imagem.
+
+### 7.5 🧹 Remoção de ruído por mediana
+
+```text
+[Entrada PGM] -> [Filtro por máscara: Mediana] -> [Visualização]
+```
+
+Uso: reduzir ruído preservando bordas.
+
+### 7.6 ✨ Detecção de bordas com laplaciano
+
+```text
+[Entrada PGM] -> [Filtro por máscara: Laplaciano] -> [Visualização]
+```
+
+Uso: destacar regiões de mudança brusca de intensidade.
+
+### 7.7 📊 Histograma
+
+```text
+[Entrada PGM] -> [Histograma]
+```
+
+Uso: analisar a distribuição dos níveis de cinza.
+
+### 7.8 🌗 Complemento
+
+```text
+[Entrada PGM] -> [Complemento] -> [Visualização]
+```
+
+Uso: gerar o negativo da imagem.
+
+### 7.9 🔀 Comparar original e processada
+
+```text
+[Entrada PGM] -------------------------------> [Diferença] -> [Visualização]
      \                                      /
-      -> [Convolução: Média 5x5] ----------
+      -> [Filtro por máscara: Média] -------
 ```
 
-Salvar resultado final:
+Uso: visualizar o quanto uma operação alterou a imagem original.
+
+### 7.10 💾 Salvar resultado final
 
 ```text
-[Leitura] -> [Pontual: Brilho] -> [Convolução] -> [Salvar]
+[Entrada PGM] -> [Complemento] -> [Exportar PGM]
 ```
 
-## Observações
+Uso: salvar uma imagem processada em `.pgm`.
 
-- O grafo não pode conter ciclos.
-- O bloco Diferença exige duas imagens com as mesmas dimensões.
-- O bloco Leitura valida se há imagem e dimensões antes do processamento.
-- O backend usa listas de pixels no intervalo de `0` a `255`.
-- Valores resultantes das operações são limitados ao intervalo `0..255`.
+---
 
-## Build de Produção
+## 8. ⚙️ Observações Técnicas
 
-Para gerar a build do frontend:
+- 🧠 O processamento das imagens é feito manualmente em Python;
+- 🚫 O backend não usa métodos prontos de bibliotecas de visão computacional;
+- 🔗 O grafo é executado em ordem topológica;
+- 🆔 Cada resultado fica associado ao id do nó correspondente;
+- 🎚️ Os pixels são representados como inteiros entre `0` e `255`;
+- 📐 Operações que geram imagem preservam largura e altura da entrada;
+- 📊 O bloco histograma gera dados de análise, não uma imagem;
+- 💾 O bloco salvar gera um arquivo PGM e retorna metadados do salvamento.
+
+---
+
+## 9. 🛑 Encerramento
+
+Para encerrar a aplicação:
+
+1. No terminal do frontend, pressione `Ctrl + C`;
+2. No terminal do backend, pressione `Ctrl + C`;
+3. Se estiver usando ambiente virtual Python, execute:
 
 ```bash
-cd frontend
-npm run build
+deactivate
 ```
-
-Os arquivos finais serão gerados em `frontend/dist/`.
