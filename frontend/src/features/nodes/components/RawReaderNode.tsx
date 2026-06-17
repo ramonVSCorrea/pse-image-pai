@@ -1,5 +1,5 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FileText, UploadCloud } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -18,8 +18,40 @@ import { cn } from '@/lib/utils'
 import { uploadRawFile } from '@/lib/api'
 
 export default function RawReaderNode({ data, id, selected }: NodeProps<RawReaderNodeData>) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [loading, setLoading] = useState(false)
+  const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 })
   const { dialog, showDialog, closeDialog } = useDialog()
+
+  useEffect(() => {
+    if (!data.imageData || !data.width || !data.height || !canvasRef.current) return
+
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    canvas.width = data.width
+    canvas.height = data.height
+
+    const maxSize = 180
+    const aspectRatio = data.width / data.height
+    const displayWidth = data.width > data.height ? maxSize : maxSize * aspectRatio
+    const displayHeight = data.width > data.height ? maxSize / aspectRatio : maxSize
+
+    setDisplaySize({ width: displayWidth, height: displayHeight })
+
+    const previewImage = ctx.createImageData(data.width, data.height)
+
+    for (let i = 0; i < data.imageData.length; i++) {
+      const pixelValue = data.imageData[i]
+      previewImage.data[i * 4] = pixelValue
+      previewImage.data[i * 4 + 1] = pixelValue
+      previewImage.data[i * 4 + 2] = pixelValue
+      previewImage.data[i * 4 + 3] = 255
+    }
+
+    ctx.putImageData(previewImage, 0, 0)
+  }, [data.height, data.imageData, data.width])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -102,8 +134,21 @@ export default function RawReaderNode({ data, id, selected }: NodeProps<RawReade
           )}
 
           {data.imageData && (
-            <div className="rounded-2xl bg-teal-700 p-2.5 text-xs font-bold text-white">
-              {data.width}×{data.height} ({data.imageData.length} pixels)
+            <div className="space-y-2 rounded-2xl border border-teal-100 bg-white/85 p-3 shadow-inner">
+              <div className="flex min-h-[150px] items-center justify-center rounded-2xl bg-slate-50 p-2">
+                <canvas
+                  ref={canvasRef}
+                  className="rounded-xl border border-slate-200 bg-white"
+                  style={{
+                    width: `${displaySize.width}px`,
+                    height: `${displaySize.height}px`,
+                    imageRendering: 'pixelated',
+                  }}
+                />
+              </div>
+              <div className="rounded-xl bg-teal-700 p-2 text-center text-xs font-bold text-white">
+                {data.width}×{data.height} ({data.imageData.length} pixels)
+              </div>
             </div>
           )}
         </div>
