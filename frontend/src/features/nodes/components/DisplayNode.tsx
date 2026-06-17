@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { useEffect, useRef, useState } from 'react'
-import { Eye, ImageIcon } from 'lucide-react'
+import { ImageIcon, Monitor } from 'lucide-react'
 import type { DisplayNodeData } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -63,50 +63,65 @@ export default function DisplayNode({ data, selected }: NodeProps<DisplayNodeDat
   return (
     <div
       className={cn(
-        'rounded-lg border-2 bg-card p-3 shadow-lg min-w-[220px]',
-        selected ? 'border-primary' : 'border-purple-500'
+        'relative min-w-[300px] overflow-visible rounded-[1.75rem] border bg-gradient-to-br from-violet-50 via-white to-purple-50 text-slate-900 shadow-node',
+        selected ? 'border-violet-600 ring-4 ring-violet-100' : 'border-violet-100'
       )}
     >
+      <div className="absolute inset-y-0 left-0 w-3 rounded-l-[1.75rem] bg-violet-600" />
       <Handle
         type="target"
         position={Position.Left}
-        className="!bg-purple-500 !border-purple-600"
+        className="!h-4 !w-4 !border-violet-600 !bg-white"
       />
+      <span className="pointer-events-none absolute -left-7 top-1/2 -translate-y-1/2 rounded-full border border-violet-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-violet-700">img</span>
 
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-        <Eye className="w-4 h-4 text-purple-500" />
-        <h3 className="font-bold text-sm text-purple-500">Exibir Imagem</h3>
-      </div>
+      <div className="pl-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-sm">
+              <Monitor className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight text-slate-950">Visualizar resultado</h3>
+              <p className="text-[11px] font-medium text-slate-500">Preview da etapa conectada</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-violet-800">Visualização</span>
+        </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3 border-t border-violet-100/80 p-4">
         {data.imageData ? (
           <>
+            <div className="flex min-h-[170px] items-center justify-center rounded-3xl border border-violet-100 bg-white/85 p-3 shadow-inner">
             <canvas
               ref={canvasRef}
-              className="border border-border rounded bg-secondary"
+              className="rounded-2xl border border-slate-200 bg-slate-50"
               style={{
                 width: `${displaySize.width}px`,
                 height: `${displaySize.height}px`,
                 imageRendering: 'pixelated',
               }}
             />
-            <div className="text-xs text-muted-foreground text-center">
+            </div>
+            <div className="rounded-2xl bg-violet-100/70 p-2 text-center text-xs font-bold text-violet-900">
               {data.imageData.width} × {data.imageData.height}
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+          <div className="flex h-40 flex-col items-center justify-center rounded-3xl border border-dashed border-violet-200 bg-white/70 text-slate-500">
             <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-xs">Aguardando processamento</p>
+            <p className="text-xs">Visualizar resultado</p>
           </div>
         )}
+      </div>
       </div>
 
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-purple-500 !border-purple-600"
+        className="!h-4 !w-4 !bg-violet-600 !border-white"
       />
+      <span className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2 rounded-full bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white">out</span>
     </div>
   )
 }

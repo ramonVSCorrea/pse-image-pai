@@ -108,6 +108,20 @@ export function useGraphProcessor(
             }
           }
 
+          if (node.type === 'COMPLEMENT' && result.type === 'image' && result.width && result.height && result.data) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                result: {
+                  width: result.width,
+                  height: result.height,
+                  data: result.data,
+                },
+              },
+            }
+          }
+
           if (node.type === 'SAVE' && result.type === 'save' && result.image) {
             return {
               ...node,
@@ -119,12 +133,12 @@ export function useGraphProcessor(
         })
       )
 
-      showToast('Processamento concluído!', 'O grafo foi processado com sucesso.')
+      showToast('Fluxo processado com sucesso.', 'As etapas conectadas foram executadas no fluxo de imagem.')
     } catch (error) {
       console.error('Erro ao processar:', error)
       showDialog(
-        'Erro ao processar',
-        error instanceof Error ? error.message : 'Erro desconhecido ao processar o grafo.'
+        'Não foi possível processar o fluxo. Verifique os blocos e conexões.',
+        error instanceof Error ? error.message : 'Erro desconhecido ao processar o fluxo.'
       )
     } finally {
       setIsProcessing(false)

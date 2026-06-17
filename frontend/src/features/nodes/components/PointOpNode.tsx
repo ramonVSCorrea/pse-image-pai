@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
@@ -61,63 +61,76 @@ export default function PointOpNode({ data, id, selected }: NodeProps<PointOpNod
   return (
     <div
       className={cn(
-        'rounded-lg border-2 bg-card p-3 shadow-lg min-w-[220px]',
-        selected ? 'border-primary' : 'border-orange-500'
+        'relative min-w-[285px] overflow-visible rounded-[1.6rem] border bg-gradient-to-br from-orange-50 via-white to-amber-50 text-slate-900 shadow-node',
+        selected ? 'border-orange-500 ring-4 ring-orange-100' : 'border-orange-100'
       )}
     >
+      <div className="absolute inset-y-0 left-0 w-3 rounded-l-[1.6rem] bg-orange-500" />
       <Handle
         type="target"
         position={Position.Left}
-        className="!bg-orange-500 !border-orange-600"
+        className="!h-4 !w-4 !border-orange-500 !bg-white"
       />
+      <span className="pointer-events-none absolute -left-7 top-1/2 -translate-y-1/2 rounded-full border border-orange-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-orange-700">img</span>
 
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-        <Sparkles className="w-4 h-4 text-orange-500" />
-        <h3 className="font-bold text-sm text-orange-500">Operação Pontual</h3>
-      </div>
-
-      <div className="space-y-3 text-xs">
-        <div>
-          <Label htmlFor={`op-${id}`} className="text-xs text-muted-foreground">
-            Operação
-          </Label>
-          <Select value={operation} onValueChange={handleOperationChange}>
-            <SelectTrigger id={`op-${id}`} className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="brightness" className="text-xs">Brilho</SelectItem>
-              <SelectItem value="threshold" className="text-xs">Limiarização</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="pl-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-sm">
+              <SlidersHorizontal className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight text-slate-950">Ajuste ponto a ponto</h3>
+              <p className="text-[11px] font-medium text-slate-500">Operação direta por pixel</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-orange-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-orange-800">Pixel</span>
         </div>
 
-        <div>
-          <Label htmlFor={`value-${id}`} className="text-xs text-muted-foreground">
-            {config.label}
-          </Label>
-          <Input
-            id={`value-${id}`}
-            type="number"
-            value={value}
-            onChange={(e) => handleValueChange(e.target.value)}
-            className="h-8 text-xs"
-            min={config.min}
-            max={config.max}
-            step={config.step}
-          />
-        </div>
+        <div className="grid grid-cols-[1fr_88px] gap-3 border-t border-orange-100/80 p-4 text-xs">
+          <div>
+            <Label htmlFor={`op-${id}`} className="text-xs font-bold text-slate-700">
+              Operação
+            </Label>
+            <Select value={operation} onValueChange={handleOperationChange}>
+              <SelectTrigger id={`op-${id}`} className="mt-1 h-10 rounded-2xl bg-white text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="brightness" className="text-xs">Brilho</SelectItem>
+                <SelectItem value="threshold" className="text-xs">Limiarização</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="text-[10px] text-muted-foreground bg-secondary p-2 rounded">
-          {config.description}
+          <div>
+            <Label htmlFor={`value-${id}`} className="text-xs font-bold text-slate-700">
+              {config.label}
+            </Label>
+            <Input
+              id={`value-${id}`}
+              type="number"
+              value={value}
+              onChange={(e) => handleValueChange(e.target.value)}
+              className="mt-1 h-10 rounded-2xl bg-orange-50/80 text-center text-xs font-bold"
+              min={config.min}
+              max={config.max}
+              step={config.step}
+            />
+          </div>
+
+          <div className="col-span-2 rounded-2xl bg-orange-100/70 px-3 py-2 text-[10px] font-medium text-orange-900">
+            {config.description}
+          </div>
         </div>
       </div>
 
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-orange-500 !border-orange-600"
+        className="!h-4 !w-4 !bg-orange-500 !border-white"
       />
+      <span className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2 rounded-full bg-orange-500 px-1.5 py-0.5 text-[9px] font-bold text-white">out</span>
     </div>
   )
 }

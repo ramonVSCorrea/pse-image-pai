@@ -72,11 +72,11 @@ export default function HistogramNode({ data, selected }: NodeProps<HistogramNod
           const y = graphHeight - barHeight
 
           // Desenhar barra
-          ctx.fillStyle = isDark ? '#64748b' : '#94a3b8'
+          ctx.fillStyle = isDark ? '#64748b' : '#f9a8d4'
           ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight)
 
           // Contorno da barra
-          ctx.strokeStyle = isDark ? '#475569' : '#64748b'
+          ctx.strokeStyle = isDark ? '#475569' : '#db2777'
           ctx.lineWidth = 1
           ctx.strokeRect(x - barWidth / 2, y, barWidth, barHeight)
         }
@@ -96,11 +96,11 @@ export default function HistogramNode({ data, selected }: NodeProps<HistogramNod
       ctx.closePath()
 
       // Preencher área com cor cinza
-      ctx.fillStyle = isDark ? '#64748b' : '#94a3b8'  // slate-500 / slate-400
+      ctx.fillStyle = isDark ? '#64748b' : '#f9a8d4'
       ctx.fill()
 
       // Adicionar contorno na parte superior
-      ctx.strokeStyle = isDark ? '#475569' : '#64748b'  // slate-600 / slate-500
+      ctx.strokeStyle = isDark ? '#475569' : '#db2777'
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(0, graphHeight)
@@ -170,38 +170,52 @@ export default function HistogramNode({ data, selected }: NodeProps<HistogramNod
     <>
       <div
         className={cn(
-          'rounded-lg border-2 bg-card p-3 shadow-lg min-w-[270px]',
-          selected ? 'border-primary' : 'border-pink-500'
+          'relative min-w-[330px] overflow-visible rounded-[1.75rem] border bg-gradient-to-br from-pink-50 via-white to-rose-50 text-slate-900 shadow-node',
+          selected ? 'border-pink-600 ring-4 ring-pink-100' : 'border-pink-100'
         )}
       >
+        <div className="absolute inset-y-0 left-0 w-3 rounded-l-[1.75rem] bg-pink-600" />
         <Handle
           type="target"
           position={Position.Left}
-          className="!bg-pink-500 !border-pink-600"
+          className="!h-4 !w-4 !border-pink-600 !bg-white"
         />
+        <span className="pointer-events-none absolute -left-7 top-1/2 -translate-y-1/2 rounded-full border border-pink-200 bg-white px-1.5 py-0.5 text-[9px] font-bold text-pink-700">img</span>
 
-        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-          <BarChart3 className="w-4 h-4 text-pink-500" />
-          <h3 className="font-bold text-sm text-pink-500">Histograma</h3>
+        <div className="pl-3">
+        <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-600 text-white shadow-sm">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight text-slate-950">Histograma</h3>
+              <p className="text-[11px] font-medium text-slate-500">Frequência dos níveis de cinza</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-pink-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-pink-800">Análise</span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3 border-t border-pink-100/80 p-4">
+          <div className="rounded-3xl border border-pink-100 bg-white/85 p-3 shadow-inner">
           <canvas
             ref={canvasRef}
-            className="w-full border border-border rounded cursor-crosshair"
+            className="w-full cursor-crosshair rounded-2xl bg-white"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           />
-          <div className="text-xs text-muted-foreground text-center">
+          </div>
+          <div className="rounded-2xl bg-pink-100/70 p-2 text-center text-xs font-bold text-pink-900">
             Distribuição de intensidades (0-255)
           </div>
+        </div>
         </div>
       </div>
 
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="fixed pointer-events-none z-50 px-2 py-1 text-xs rounded shadow-lg bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900"
+          className="fixed pointer-events-none z-50 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-900 shadow-xl"
           style={{
             left: `${tooltip.x + 10}px`,
             top: `${tooltip.y - 30}px`,

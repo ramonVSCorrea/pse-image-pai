@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import ReactFlow, {
-  MiniMap,
   Controls,
   Background,
   ReactFlowProvider,
@@ -13,8 +12,7 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 
-import type { PSEEdge, NodeType, NodeDataTypes } from '@/types'
-import { NODE_COLORS } from '@/types'
+import type { PSEEdge, NodeDataTypes } from '@/types'
 import { nodeTypes } from '@/features/nodes'
 
 interface FlowCanvasProps {
@@ -77,9 +75,13 @@ function FlowCanvasInner({
   }
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] border border-slate-900/10 bg-white/45 shadow-2xl shadow-slate-900/10 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/40 dark:shadow-black/30">
-      <div className="pointer-events-none absolute left-5 top-5 z-10 rounded-full border border-slate-900/10 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-slate-600 backdrop-blur dark:border-white/10 dark:bg-slate-950/75 dark:text-slate-300">
-        Canvas interativo
+    <div className="relative h-full w-full overflow-hidden bg-[#EEF4FA]">
+      <div className="pointer-events-none absolute top-28 z-10 hidden max-w-[390px] rounded-3xl border border-white/80 bg-white/80 px-4 py-3 text-slate-900 shadow-lab lg:left-[372px] lg:block">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-950">
+          <span className="h-2 w-5 rounded-full bg-blue-600" />
+          Workspace do pipeline
+        </div>
+        <p className="mt-1 text-xs text-slate-500">Organize as etapas, conecte as imagens e execute a sequência.</p>
       </div>
       <KeyboardHandler onLockChange={handleLockToggle} />
       <ReactFlow
@@ -96,19 +98,19 @@ function FlowCanvasInner({
         fitView
         defaultEdgeOptions={{
           animated: true,
-          style: { strokeWidth: 2.5, stroke: '#67e8f9' },
+          style: { strokeWidth: 2.2, stroke: '#667085' },
         }}
       >
         <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            return NODE_COLORS[node.type as NodeType] || '#ccc'
-          }}
-          pannable
-          zoomable
-        />
-        <Background variant={BackgroundVariant.Lines} gap={28} size={1} />
+        <Background variant={BackgroundVariant.Dots} gap={18} size={0.7} color="#9AA6B8" />
       </ReactFlow>
+
+      {nodes.length === 0 && (
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 w-[min(90vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-dashed border-slate-300 bg-white/90 px-6 py-5 text-center shadow-lab">
+          <p className="text-sm font-semibold text-slate-900">Comece adicionando um bloco de Leitura para importar uma imagem PGM.</p>
+          <p className="mt-2 text-xs text-slate-500">Conecte os blocos para definir a ordem do processamento.</p>
+        </div>
+      )}
     </div>
   )
 }

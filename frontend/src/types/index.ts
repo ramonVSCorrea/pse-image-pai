@@ -21,6 +21,7 @@ export type NodeType =
   | 'DISPLAY'
   | 'HISTOGRAM'
   | 'DIFFERENCE'
+  | 'COMPLEMENT'
   | 'SAVE'
 
 export type PointOperation = 'brightness' | 'threshold'
@@ -71,6 +72,10 @@ export interface DifferenceNodeData extends BaseNodeData {
   result?: ImageData
 }
 
+export interface ComplementNodeData extends BaseNodeData {
+  result?: ImageData
+}
+
 export interface SaveNodeData extends BaseNodeData {
   filename: string
   imageData?: ImageData
@@ -83,6 +88,7 @@ export type NodeDataTypes =
   | DisplayNodeData
   | HistogramNodeData
   | DifferenceNodeData
+  | ComplementNodeData
   | SaveNodeData
 
 // ============ REACT FLOW TYPES ============
@@ -264,11 +270,12 @@ export const PRESET_KERNELS: Record<string, KernelPreset> = {
 // ============ NODE COLORS ============
 
 export const NODE_COLORS: Record<NodeType, string> = {
-  RAW_READER: '#22c55e',
-  CONVOLUTION: '#3b82f6',
-  POINT_OP: '#f59e0b',
-  DISPLAY: '#8b5cf6',
-  HISTOGRAM: '#ec4899',
+  RAW_READER: '#0f766e',
+  CONVOLUTION: '#2563eb',
+  POINT_OP: '#f97316',
+  DISPLAY: '#7c3aed',
+  HISTOGRAM: '#db2777',
   DIFFERENCE: '#ef4444',
-  SAVE: '#10b981',
+  COMPLEMENT: '#4f46e5',
+  SAVE: '#059669',
 }
