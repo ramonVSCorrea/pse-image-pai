@@ -72,18 +72,10 @@ export function useGraphProcessor(
 
       const results = response.results
 
-      // Debug: verificar o que está chegando
-      console.log('Results from backend:', results)
-
       setNodes((nds) =>
         nds.map((node) => {
           const result = results[node.id]
           if (!result) return node
-
-          // Debug: verificar cada nó DISPLAY
-          if (node.type === 'DISPLAY') {
-            console.log('DISPLAY Node:', node.id, 'Result:', result)
-          }
 
           if (node.type === 'DISPLAY' && result.type === 'image' && result.width && result.height && result.data) {
             const imageData = {
@@ -91,7 +83,6 @@ export function useGraphProcessor(
               height: result.height,
               data: result.data
             }
-            console.log('Setting imageData for DISPLAY:', imageData)
             return {
               ...node,
               data: {

@@ -5,6 +5,7 @@ import PointOpNode from '../components/PointOpNode'
 import DisplayNode from '../components/DisplayNode'
 import HistogramNode from '../components/HistogramNode'
 import DifferenceNode from '../components/DifferenceNode'
+import ComplementNode from '../components/ComplementNode'
 import SaveNode from '../components/SaveNode'
 
 export const nodeTypes: NodeTypes = {
@@ -14,5 +15,6 @@ export const nodeTypes: NodeTypes = {
   DISPLAY: DisplayNode,
   HISTOGRAM: HistogramNode,
   DIFFERENCE: DifferenceNode,
+  COMPLEMENT: ComplementNode,
   SAVE: SaveNode,
 }
