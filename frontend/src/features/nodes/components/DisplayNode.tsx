@@ -8,12 +8,7 @@ export default function DisplayNode({ data, selected }: NodeProps<DisplayNodeDat
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 })
 
-  // Debug: verificar os dados que chegam
-  console.log('DisplayNode data:', data)
-
   useEffect(() => {
-    console.log('DisplayNode useEffect triggered. imageData:', data.imageData)
-
     if (!data.imageData || !canvasRef.current) return
 
     const canvas = canvasRef.current
@@ -21,8 +16,6 @@ export default function DisplayNode({ data, selected }: NodeProps<DisplayNodeDat
     if (!ctx) return
 
     const { width, height, data: pixels } = data.imageData
-
-    console.log('Rendering image:', { width, height, pixelsLength: pixels.length })
 
     canvas.width = width
     canvas.height = height
@@ -57,7 +50,6 @@ export default function DisplayNode({ data, selected }: NodeProps<DisplayNodeDat
     }
 
     ctx.putImageData(imageData, 0, 0)
-    console.log('Image rendered successfully with display size:', { displayWidth, displayHeight })
   }, [data.imageData])
 
   return (

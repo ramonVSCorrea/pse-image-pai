@@ -7,6 +7,7 @@ import {
   Eye,
   BarChart3,
   Minus,
+  SunMoon,
   Save,
   Play,
   Trash2,
@@ -84,6 +85,13 @@ export function Toolbar({ onAddNode, onProcess, onClear, isProcessing }: Toolbar
             type="DIFFERENCE"
             icon={Minus}
             label="Diferença"
+            onClick={onAddNode}
+          />
+
+          <NodeButton
+            type="COMPLEMENT"
+            icon={SunMoon}
+            label="Complemento"
             onClick={onAddNode}
           />
 

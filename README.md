@@ -18,6 +18,7 @@ O foco do projeto é deixar o processamento explícito e didático, com algoritm
 - Operações pontuais de brilho e limiarização.
 - Cálculo de histograma de intensidades.
 - Diferença absoluta entre duas imagens de mesmas dimensões.
+- Complemento (negativo) de uma imagem.
 - Visualização de resultados intermediários no fluxo.
 - Exportação de resultado em arquivo `.pgm`.
 - Tema claro/escuro.
@@ -32,7 +33,8 @@ O foco do projeto é deixar o processamento explícito e didático, com algoritm
 | Exibir | Mostra a imagem resultante e propaga os dados para outros blocos. |
 | Histograma | Calcula a frequência de intensidades de 0 a 255. |
 | Diferença | Calcula a diferença absoluta entre duas imagens. |
-| Salvar | Grava o resultado em `backend/output/` no formato PGM P5. |
+| Complemento | Gera o negativo da imagem (255 - pixel). |
+| Salvar | Grava o resultado no formato PGM P5. |
 
 ## Tecnologias
 

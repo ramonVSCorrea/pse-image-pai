@@ -47,6 +47,8 @@ class ImageProcessor:
                     results[node_id] = self.process_histogram(node, inputs)
                 elif node_type == 'DIFFERENCE':
                     results[node_id] = self.process_difference(node, inputs)
+                elif node_type == 'COMPLEMENT':
+                    results[node_id] = self.process_complement(node, inputs)
                 else:
                     results[node_id] = {"error": f"Tipo de nó desconhecido: {node_type}"}
             except Exception as e:
@@ -557,6 +559,56 @@ class ImageProcessor:
             "data": output
         }
 
+    def process_complement(self, node: Dict, inputs: List) -> Dict:
+        """
+        ═══════════════════════════════════════════════════════════════
+        COMPLEMENTO DE IMAGEM - Inverte os tons de cinza (negativo)
+        ═══════════════════════════════════════════════════════════════
+
+        O QUE FAZ:
+        - Inverte cada pixel: pixel_saida = 255 - pixel_entrada
+        - Transforma a imagem no seu NEGATIVO
+
+        COMO FUNCIONA:
+        1. Para cada pixel da imagem
+        2. Subtrai o valor do pixel de 255 (valor maximo)
+        3. Resultado: pixels claros ficam escuros e vice-versa
+
+        EXEMPLO:
+        Pixel original = 200 (claro)  ->  255 - 200 = 55 (escuro)
+        Pixel original = 30  (escuro) ->  255 - 30  = 225 (claro)
+        Pixel original = 0   (preto)  ->  255 - 0   = 255 (branco)
+        Pixel original = 255 (branco) ->  255 - 255 = 0   (preto)
+
+        PROPRIEDADE IMPORTANTE:
+        - Aplicar o complemento DUAS VEZES retorna a imagem original
+        - complemento(complemento(pixel)) = 255 - (255 - pixel) = pixel
+
+        POR QUE E UTIL:
+        - Realcar detalhes em regioes escuras de radiografias
+        - Inverter imagens para melhor visualizacao
+        - Etapa intermediaria em algoritmos de processamento
+        ═══════════════════════════════════════════════════════════════
+        """
+        if not inputs or 'data' not in inputs[0]:
+            return {"error": "Entrada invalida para complemento"}
+
+        input_image = inputs[0]
+        width = input_image['width']
+        height = input_image['height']
+        pixels = input_image['data']
+
+        output = [0] * len(pixels)
+        for i in range(len(pixels)):
+            output[i] = 255 - pixels[i]
+
+        return {
+            "type": "image",
+            "width": width,
+            "height": height,
+            "data": output
+        }
+
     def process_display(self, node: Dict, inputs: List) -> Dict:
         """
         Prepara imagem para exibição e propaga dados para outros nós
@@ -564,17 +616,12 @@ class ImageProcessor:
         if not inputs:
             return {"error": "Nenhuma entrada para exibir"}
 
-        # Propaga a imagem inalterada para permitir encadeamento (ex: Display -> Save)
-        result = {
+        return {
             "type": "image",
             "width": inputs[0]['width'],
             "height": inputs[0]['height'],
             "data": inputs[0]['data']
         }
-        
-        print(f"[DEBUG] process_display retornando: type={result['type']}, width={result['width']}, height={result['height']}, data_length={len(result['data'])}")
-        
-        return result
 
     def process_save(self, node: Dict, inputs: List) -> Dict:
         """
