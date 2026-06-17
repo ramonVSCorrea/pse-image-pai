@@ -202,6 +202,42 @@ http://localhost:5173
 
 Abra esse endereço no navegador.
 
+### 4.3 🖥️ App desktop com Electron
+
+O projeto também pode ser executado como aplicativo desktop no Windows. O Electron abre a interface React e inicia o backend automaticamente.
+
+Instale as dependências do frontend e do backend:
+
+```bash
+cd frontend
+npm install
+```
+
+```bash
+cd backend
+python -m pip install -r requirements.txt
+```
+
+Para rodar em modo desktop durante o desenvolvimento:
+
+```bash
+cd frontend
+npm run desktop-dev
+```
+
+Para gerar o instalador `.exe`:
+
+```bash
+cd frontend
+npm run desktop-build
+```
+
+O instalador será criado em:
+
+```text
+frontend/release/PSE-Image Setup 1.0.0.exe
+```
+
 ---
 
 ## 5. 🧭 Como Usar a Interface

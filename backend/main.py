@@ -23,7 +23,8 @@ app = FastAPI(title="PSE-Image Backend", version="2.0.0")
 # Mantem localhost para desenvolvimento e o dominio publicado do projeto.
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "null"
 ]
 
 

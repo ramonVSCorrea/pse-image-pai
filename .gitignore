@@ -22,8 +22,12 @@ yarn.lock
 
 # Frontend build
 frontend/dist/
+frontend/release/
 frontend/.vite/
 frontend/coverage/
+
+# Desktop packaging
+backend/*.spec
 
 # IDE
 .vscode/
